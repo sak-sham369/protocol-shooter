@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTOCOL // 1v1 TACTICAL SHOOTER</title>
+<style>
+/* ============================================================
+   PROTOCOL :: 1v1 TACTICAL SHOOTER
+   CSS - 800 lines
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0e13;color:#e8eef5;font-family:'Rajdhani','Segoe UI',Arial,sans-serif;letter-spacing:.5px;user-select:none;-webkit-user-select:none}
+canvas{display:block}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;background:none;color:inherit;pointer-events:auto}
+input,select,textarea{font-family:inherit;outline:none}
+.hidden{display:none!important}
+.screen{position:fixed;inset:0;z-index:50;display:none;flex-direction:column}
+.screen.active{display:flex}
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Bebas+Neue&family=Share+Tech+Mono&display=swap');
+/* LOADING */
+#bootScreen{background:#0a0e13;z-index:1000;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s}
+#bootScreen.hidden{opacity:0;pointer-events:none}
+.boot-logo{font-family:'Bebas Neue',sans-serif;font-size:80px;letter-spacing:12px;color:#ff4655;text-shadow:0 0 40px rgba(255,70,85,.6);animation:pulse 1.6s ease-in-out infinite}
+.boot-sub{margin-top:10px;color:#768079;font-size:14px;letter-spacing:6px}
+.boot-bar{margin-top:30px;width:300px;height:2px;background:#1f2329;overflow:hidden;position:relative}
+.boot-bar::after{content:'';position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#ff4655,#ff8a8a);animation:loadbar 3s ease forwards}
+@keyframes loadbar{to{width:100%}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes blink{50%{opacity:.3}}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes kfFade{0%,80%{opacity:1;transform:translateX(0)}100%{opacity:0;transform:translateX(20px)}}
+@keyframes hitflash{0%{opacity:1;transform:translate(-50%,-50%) scale(1.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+@keyframes hitdmg{0%{opacity:1}100%{opacity:0}}
+@keyframes announce{0%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}20%{opacity:1;transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+@keyframes dmgnum{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+@keyframes flashbang{0%{opacity:0}10%{opacity:1}100%{opacity:0}}
+@keyframes spikepulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}50%{transform:translate(-50%,-50%) scale(1.3);opacity:1}}
+@keyframes buyGlow{0%,100%{background:rgba(0,255,127,0)}50%{background:rgba(0,255,127,.3)}}
+/* MAIN MENU */
+#mainMenu{background:radial-gradient(ellipse at center,#1a232c 0%,#0a0e13 70%);flex-direction:column}
+.mm-top{display:flex;align-items:center;justify-content:space-between;padding:20px 40px;border-bottom:1px solid rgba(255,255,255,.05)}
+.mm-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:6px;color:#ff4655}
+.mm-version{color:#768079;font-size:12px;letter-spacing:2px}
+.mm-center{flex:1;display:flex;align-items:center;justify-content:center;gap:80px;padding:40px}
+.mm-hero{flex:1;max-width:520px;position:relative}
+.mm-hero h1{font-family:'Bebas Neue',sans-serif;font-size:120px;line-height:.9;letter-spacing:4px;color:#fff;text-shadow:0 4px 30px rgba(255,70,85,.4)}
+.mm-hero h1 span{color:#ff4655}
+.mm-hero p{margin-top:20px;color:#a8b2bd;font-size:18px;line-height:1.5;max-width:420px}
+.mm-hero .accent-line{width:80px;height:3px;background:#ff4655;margin:20px 0}
+.mm-menu{flex:0 0 320px;display:flex;flex-direction:column;gap:14px}
+.mm-btn{padding:18px 28px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#e8eef5;font-size:18px;font-weight:600;letter-spacing:3px;text-align:left;transition:all .2s;position:relative;overflow:hidden;text-transform:uppercase;display:block;width:100%}
+.mm-btn:hover{background:rgba(255,70,85,.12);border-color:#ff4655;padding-left:36px}
+.mm-btn.primary{background:#ff4655;color:#fff;border-color:#ff4655}
+.mm-btn.primary:hover{background:#ff5e6a;box-shadow:0 0 30px rgba(255,70,85,.4)}
+.mm-btn::before{content:'›';position:absolute;left:14px;opacity:0;transition:all .2s;font-size:24px;color:#ff4655}
+.mm-btn:hover::before{opacity:1;left:18px}
+.mm-btn:disabled{background:#1a232c;color:#768079;border-color:#1a2329;cursor:not-allowed}
+.mm-btn:disabled:hover{background:#1a232c;border-color:#1a2329;padding-left:28px;box-shadow:none}
+.mm-bottom{padding:15px 40px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;font-size:11px;color:#768079;letter-spacing:2px}
+.mm-bottom .news{display:flex;gap:30px}
+.mm-bottom .news span::before{content:'●';color:#ff4655;margin-right:8px}
+/* ONLINE SCREEN */
+#onlineScreen{background:#0a0e13;flex-direction:column;align-items:center;justify-content:center;padding:40px;position:relative}
+.os-title{font-family:'Bebas Neue',sans-serif;font-size:64px;letter-spacing:6px;margin-bottom:40px}
+.os-title span{color:#ff4655}
+.os-options{display:flex;gap:40px;max-width:900px;width:100%}
+.os-card{flex:1;padding:40px;background:#11161c;border:2px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center}
+.os-card:hover{border-color:#ff4655;transform:translateY(-4px)}
+.os-card h2{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:4px;margin-bottom:14px}
+.os-card p{color:#a8b2bd;font-size:14px;line-height:1.5;margin-bottom:20px}
+.os-card .icon{font-size:60px;color:#ff4655;margin-bottom:20px}
+.os-join-panel{margin-top:30px;display:none;width:100%;max-width:500px}
+.os-join-panel.show{display:block}
+.os-join-panel input{padding:14px;background:#11161c;border:2px solid rgba(255,255,255,.1);color:#e8eef5;font-size:16px;width:100%;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.os-join-panel input:focus{border-color:#ff4655}
+.os-join-panel button{padding:14px 40px;background:#ff4655;width:100%;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px}
+.os-join-panel button:hover{background:#ff5e6a}
+.os-back{position:absolute;top:30px;left:30px;padding:10px 20px;background:rgba(255,255,255,.05);letter-spacing:2px;cursor:pointer}
+.os-back:hover{background:rgba(255,255,255,.1)}
+/* AGENT SELECT */
+#agentSelect{background:#0a0e13;flex-direction:column}
+.as-header{padding:24px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.05)}
+.as-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px}
+.as-title span{color:#ff4655}
+.as-tip{color:#768079;font-size:12px;letter-spacing:2px}
+.as-body{flex:1;display:flex;padding:30px 40px;gap:30px;overflow:hidden;min-height:0}
+.as-side{flex:0 0 280px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:10px}
+.as-side::-webkit-scrollbar{width:6px}
+.as-side::-webkit-scrollbar-track{background:#11161c}
+.as-side::-webkit-scrollbar-thumb{background:#ff4655}
+.agent-card{padding:18px;background:rgba(255,255,255,.03);border:2px solid transparent;cursor:pointer;transition:all .2s;position:relative;flex-shrink:0}
+.agent-card.active{border-color:#ff4655;background:rgba(255,70,85,.08)}
+.agent-card:hover{background:rgba(255,255,255,.06)}
+.agent-card .aname{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px}
+.agent-card .arole{font-size:11px;color:#768079;letter-spacing:2px;margin-top:2px}
+.agent-card .apick{position:absolute;top:18px;right:18px;width:18px;height:18px;border:1px solid #768079;border-radius:50%}
+.agent-card.active .apick{background:#ff4655;border-color:#ff4655;box-shadow:0 0 12px #ff4655}
+.as-portrait{flex:1;position:relative;overflow:hidden;background:#11161c;border:1px solid rgba(255,255,255,.05);min-height:400px}
+.as-portrait canvas{position:absolute;inset:0;width:100%;height:100%}
+.as-portrait .pname{position:absolute;top:30px;left:40px;font-family:'Bebas Neue',sans-serif;font-size:90px;letter-spacing:4px;z-index:2;text-shadow:0 4px 20px rgba(0,0,0,.8)}
+.as-portrait .prole{position:absolute;top:130px;left:40px;font-size:14px;letter-spacing:4px;color:#ff4655;z-index:2}
+.as-portrait .pdivider{position:absolute;top:160px;left:40px;width:60px;height:2px;background:#ff4655;z-index:2}
+.as-portrait .pbio{position:absolute;top:180px;left:40px;right:40px;color:#a8b2bd;font-size:15px;line-height:1.6;max-width:500px;z-index:2}
+.as-portrait .pabilities{position:absolute;bottom:30px;left:40px;display:flex;gap:14px;z-index:2}
+.pab{width:60px;height:60px;background:rgba(255,70,85,.1);border:2px solid #ff4655;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:all .2s}
+.pab:hover{background:rgba(255,70,85,.25);transform:translateY(-4px)}
+.pab .ak{position:absolute;top:-18px;right:-6px;background:#ff4655;color:#fff;font-size:10px;padding:2px 6px;font-weight:700;letter-spacing:1px}
+.pab .ai{font-size:22px;color:#ff4655}
+.pab .alabel{font-size:9px;letter-spacing:1px;margin-top:2px;text-align:center;color:#e8eef5}
+.as-bottom{padding:20px 40px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center}
+.as-bottom .lockbtn{padding:14px 60px;background:#ff4655;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;transition:all .2s;cursor:pointer;color:#fff}
+.as-bottom .lockbtn:hover{background:#ff5e6a;box-shadow:0 0 30px rgba(255,70,85,.4)}
+/* LOBBY */
+#lobbyScreen{background:#0a0e13;flex-direction:column}
+.lb-header{padding:18px 40px;display:flex;justify-content:space-between;align-items:center;background:#11161c;border-bottom:1px solid rgba(255,255,255,.05);gap:20px}
+.lb-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px}
+.lb-title span{color:#ff4655}
+.lb-id{font-family:'Share Tech Mono',monospace;color:#a8b2bd;background:rgba(255,255,255,.05);padding:8px 14px;letter-spacing:1px;font-size:13px;cursor:pointer;white-space:nowrap}
+.lb-id:hover{background:rgba(255,70,85,.15);color:#ff4655}
+.lb-body{flex:1;display:flex;padding:30px 40px;gap:20px;overflow:hidden;min-height:0}
+.lb-players{flex:1;display:flex;flex-direction:column;gap:16px;max-width:560px;min-width:0}
+.lb-player{height:130px;background:rgba(255,255,255,.03);border:2px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 24px;gap:24px;position:relative;overflow:hidden}
+.lb-player.you{background:linear-gradient(90deg,rgba(255,70,85,.08),transparent)}
+.lb-avatar{width:80px;height:80px;background:#1a232c;display:flex;align-items:center;justify-content:center;font-size:36px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.lb-pname{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px}
+.lb-prole{color:#768079;font-size:12px;letter-spacing:2px;margin-top:2px}
+.lb-pbadge{position:absolute;top:18px;right:18px;padding:4px 12px;background:rgba(255,70,85,.15);color:#ff4655;font-size:10px;letter-spacing:2px;font-weight:700}
+.lb-side{flex:0 0 280px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.lb-panel{background:#11161c;padding:20px;border:1px solid rgba(255,255,255,.05)}
+.lb-panel h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;margin-bottom:14px;color:#ff4655}
+.lb-input{padding:12px 14px;background:#0a0e13;border:1px solid rgba(255,255,255,.1);color:#e8eef5;font-size:14px;width:100%;letter-spacing:1px}
+.lb-input:focus{border-color:#ff4655}
+.lb-select{width:100%;padding:12px;background:#0a0e13;border:1px solid rgba(255,255,255,.1);color:#e8eef5}
+.lb-status{padding:10px;font-size:12px;letter-spacing:1px;background:rgba(255,70,85,.1);color:#ff4655;text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center}
+.lb-status.ok{background:rgba(0,255,127,.1);color:#00ff7f}
+.lb-bottom{padding:18px 40px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.lb-back{padding:12px 30px;background:rgba(255,255,255,.05);letter-spacing:3px;cursor:pointer}
+.lb-back:hover{background:rgba(255,255,255,.1)}
+.lb-start{padding:14px 50px;background:#00ff7f;color:#0a0e13;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:4px;font-weight:700;transition:all .2s;cursor:pointer}
+.lb-start:hover{box-shadow:0 0 30px rgba(0,255,127,.4)}
+.lb-start:disabled{background:#1f2329;color:#768079;cursor:not-allowed;box-shadow:none}
+.lb-info{color:#768079;font-size:12px;letter-spacing:2px;max-width:40%}
+.lb-chat{flex:0 0 280px;display:flex;flex-direction:column;background:#11161c;padding:16px;min-width:0}
+.lb-chat h3{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;color:#ff4655;margin-bottom:10px}
+.chat-log{flex:1;overflow-y:auto;font-size:12px;color:#a8b2bd;margin-bottom:10px;min-height:200px;max-height:100%}
+.chat-msg{margin-bottom:4px;word-wrap:break-word}
+.chat-msg .cn{color:#ff4655;font-weight:700}
+.chat-input{display:flex;gap:6px}
+.chat-input input{flex:1;padding:8px;background:#0a0e13;border:1px solid rgba(255,255,255,.1);color:#e8eef5;font-size:12px}
+.chat-input button{padding:8px 14px;background:#ff4655;font-size:11px;letter-spacing:1px}
+/* HUD */
+#hud{position:fixed;inset:0;z-index:20;pointer-events:none;display:none}
+#hud.active{display:block}
+.hud-top{position:absolute;top:0;left:0;right:0;height:80px;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 24px;background:linear-gradient(180deg,rgba(10,14,19,.85) 0%,transparent 100%)}
+.hud-score{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px;display:flex;align-items:center;gap:24px;text-shadow:0 2px 8px rgba(0,0,0,.8)}
+.hud-score .t{color:#768079;font-size:13px;letter-spacing:2px}
+.hud-timer{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:4px;color:#ff4655;text-shadow:0 0 20px rgba(255,70,85,.5)}
+.hud-round{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:4px}
+.hud-bottom{position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(0deg,rgba(10,14,19,.95) 0%,transparent 100%);display:flex;justify-content:center;align-items:flex-end;padding:0 0 18px 0}
+.hud-center{display:flex;flex-direction:column;align-items:center;gap:6px}
+.hud-weapon{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px}
+.hud-ammo{font-family:'Share Tech Mono',monospace;font-size:48px;color:#ff4655;line-height:1}
+.hud-ammo .reserve{color:#768079;font-size:22px;margin-left:6px}
+.hud-hp{width:380px;height:14px;background:#1a232c;position:relative;border:1px solid rgba(255,255,255,.1);margin-top:6px;overflow:hidden}
+.hud-hp-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#00ff7f,#7fff7f);transition:width .2s}
+.hud-hp-armor{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#4ec9ff,#7fb5ff);transition:width .2s;z-index:0}
+.hud-hp-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:#fff;text-shadow:0 0 4px #000;z-index:1}
+.hud-abilities{display:flex;gap:14px;align-items:flex-end;position:absolute;bottom:30px;right:30px}
+.hud-ab{width:64px;height:64px;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;pointer-events:auto}
+.hud-ab .ai{font-size:24px;color:#ff4655}
+.hud-ab .ak{position:absolute;top:-16px;font-size:10px;color:#768079;letter-spacing:1px}
+.hud-ab .charges{position:absolute;bottom:-16px;font-size:10px;color:#00ff7f;letter-spacing:1px}
+.hud-ab.ready{border-color:#ff4655;background:rgba(255,70,85,.1)}
+.hud-ab.cooldown{filter:grayscale(.6) brightness(.5)}
+.hud-killfeed{position:absolute;top:90px;right:24px;display:flex;flex-direction:column;gap:4px;align-items:flex-end;max-width:400px}
+.kill-line{padding:6px 14px;background:rgba(10,14,19,.85);font-size:12px;letter-spacing:1px;border-left:3px solid #ff4655;animation:kfFade 5s forwards}
+.kill-line .killer{color:#00ff7f;font-weight:700}
+.kill-line .victim{color:#ff4655;font-weight:700}
+.kill-line .weapon{margin:0 8px;color:#768079}
+.hud-minimap{position:absolute;top:90px;left:24px;width:180px;height:180px;background:rgba(10,14,19,.85);border:1px solid rgba(255,70,255,.3);overflow:hidden}
+.hud-minimap canvas{width:100%;height:100%}
+.hud-minimap .label{position:absolute;top:4px;left:6px;font-size:9px;letter-spacing:2px;color:#ff4655;z-index:1}
+.hud-cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+.hud-hitmarker{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;pointer-events:none;opacity:0}
+.hud-hitmarker.show{animation:hitflash .25s}
+.hud-hitmarker::before,.hud-hitmarker::after{content:'';position:absolute;background:#fff;width:3px;height:14px;top:8px;left:13.5px}
+.hud-hitmarker::before{transform:rotate(45deg) translate(-3px,-3px)}
+.hud-hitmarker::after{transform:rotate(-45deg) translate(3px,-3px)}
+.hud-damage{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:200px;pointer-events:none;background:radial-gradient(circle,rgba(255,0,0,.3) 0%,transparent 60%);opacity:0}
+.hud-damage.show{animation:hitdmg .3s}
+.hud-announce{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:90px;letter-spacing:8px;color:#ff4655;text-shadow:0 0 40px rgba(255,70,85,.6);opacity:0;pointer-events:none;white-space:nowrap}
+.hud-announce.show{animation:announce 2.5s forwards}
+.hud-dmg-num{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:32px;color:#ff4655;text-shadow:0 0 8px rgba(255,70,85,.8);pointer-events:none;animation:dmgnum 1s forwards;font-weight:700}
+.hud-buymenu{position:absolute;bottom:0;left:0;right:0;background:rgba(10,14,19,.97);border-top:2px solid #ff4655;padding:20px;display:none;pointer-events:auto;flex-direction:column;gap:14px;max-height:60vh;z-index:25}
+.hud-buymenu.active{display:flex}
+.buy-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;color:#ff4655}
+.buy-cats{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;flex-wrap:wrap}
+.buy-cat{padding:8px 16px;background:rgba(255,255,255,.04);letter-spacing:2px;cursor:pointer;font-size:12px;border:1px solid transparent}
+.buy-cat.active{background:#ff4655;color:#fff;border-color:#ff4655}
+.buy-cat:hover{background:rgba(255,70,85,.2)}
+.buy-items{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;overflow-y:auto}
+.buy-item{background:rgba(255,255,255,.04);padding:12px;border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.buy-item:hover{border-color:#ff4655;background:rgba(255,70,85,.08)}
+.buy-item.owned{border-color:#00ff7f;background:rgba(0,255,127,.05);cursor:not-allowed}
+.buy-item .bi-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px}
+.buy-item .bi-cost{color:#00ff7f;font-size:12px;letter-spacing:1px}
+.buy-item .bi-desc{font-size:10px;color:#768079}
+.buy-credits{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#00ff7f;letter-spacing:2px;position:absolute;top:14px;right:30px;z-index:26}
+.buy-close{position:absolute;top:14px;right:160px;padding:6px 16px;background:rgba(255,255,255,.05);font-size:11px;letter-spacing:2px;cursor:pointer;z-index:26}
+.hud-spike{position:absolute;top:50%;right:60px;transform:translateY(-50%);background:rgba(10,14,19,.9);border:2px solid #ff4655;padding:14px 20px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;display:none;color:#ff4655;pointer-events:none;z-index:21}
+.hud-spike.active{display:block}
+.hud-spike .stimer{font-size:32px;text-align:center;margin-top:4px}
+.hud-spike-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:radial-gradient(circle,#ff4655 0%,transparent 70%);animation:spikepulse 1s infinite;display:none;pointer-events:none;z-index:21}
+.hud-spike-icon.active{display:block}
+.hud-defuse{position:absolute;bottom:220px;left:50%;transform:translateX(-50%);padding:14px 30px;background:rgba(0,255,127,.2);border:2px solid #00ff7f;color:#00ff7f;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;display:none;pointer-events:auto;cursor:pointer;z-index:21}
+.hud-defuse.active{display:block}
+/* KILL / ROUND / STATS / SETTINGS / SPEC */
+#killScreen,#roundScreen,#statsScreen,#settingsScreen,#spectateScreen,#achievementsScreen{position:fixed;inset:0;z-index:30;background:rgba(10,14,19,.92);display:none;align-items:center;justify-content:center;flex-direction:column}
+#killScreen.show,#roundScreen.show,#statsScreen.show,#settingsScreen.show,#spectateScreen.show,#achievementsScreen.show{display:flex}
+.ks-killer{font-family:'Bebas Neue',sans-serif;font-size:80px;letter-spacing:6px;color:#00ff7f;text-shadow:0 0 30px rgba(0,255,127,.5);text-align:center;padding:0 40px}
+.ks-you{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:6px;color:#ff4655;margin:14px 0}
+.ks-weapon{font-size:18px;color:#a8b2bd;letter-spacing:2px}
+.ks-tip{margin-top:30px;color:#768079;letter-spacing:3px;animation:blink 1s infinite}
+.rs-title{font-family:'Bebas Neue',sans-serif;font-size:120px;letter-spacing:8px}
+.rs-title.win{color:#00ff7f;text-shadow:0 0 40px rgba(0,255,127,.5)}
+.rs-title.lose{color:#ff4655;text-shadow:0 0 40px rgba(255,70,85,.5)}
+.rs-score{font-family:'Bebas Neue',sans-serif;font-size:80px;margin:14px 0;letter-spacing:6px}
+.rs-tip{margin-top:30px;color:#a8b2bd;letter-spacing:2px}
+.settings-panel{width:700px;max-width:90vw;max-height:85vh;background:#11161c;border:1px solid rgba(255,255,255,.05);padding:30px;overflow-y:auto;position:relative}
+.settings-panel h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:#ff4655;margin-bottom:20px}
+.set-section{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.05)}
+.set-section h3{font-size:14px;letter-spacing:3px;color:#ff4655;margin-bottom:12px}
+.set-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;gap:10px}
+.set-row label{flex:1;color:#a8b2bd}
+.set-row input[type=range]{width:200px;flex-shrink:0}
+.set-row .val{color:#ff4655;font-family:'Share Tech Mono',monospace;width:80px;text-align:right;flex-shrink:0}
+.set-row select{padding:6px;background:#0a0e13;border:1px solid rgba(255,255,255,.1);color:#e8eef5}
+.set-row input[type=color]{width:50px;height:30px;background:#0a0e13;border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.ch-editor{display:flex;gap:30px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.ch-preview{width:160px;height:160px;background:#0a0e13;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.ch-controls{flex:1;display:flex;flex-direction:column;gap:8px;min-width:200px}
+.set-close{margin-top:20px;padding:12px 30px;background:#ff4655;letter-spacing:3px;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;display:block;margin-left:auto;margin-right:auto}
+.stats-panel{width:600px;max-width:90vw;max-height:85vh;background:#11161c;padding:30px;border:1px solid rgba(255,255,255,.05);overflow-y:auto;position:relative}
+.stats-panel h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:4px;color:#ff4655;margin-bottom:20px}
+.stat-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}
+.stat-row .lbl{color:#768079;letter-spacing:2px}
+.stat-row .val{color:#fff;font-family:'Share Tech Mono',monospace}
+.stat-graph{height:100px;background:#0a0e13;margin:20px 0;padding:10px;display:flex;align-items:flex-end;gap:4px;border:1px solid rgba(255,255,255,.05)}
+.stat-bar{flex:1;background:linear-gradient(180deg,#ff4655,#ff8a8a);min-height:2px;position:relative}
+.stat-bar-lbl{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:9px;color:#768079}
+.spec-info{font-family:'Bebas Neue',sans-serif;font-size:24px;color:#768079;letter-spacing:4px;margin-bottom:20px}
+.spec-name{font-family:'Bebas Neue',sans-serif;font-size:48px;color:#ff4655;letter-spacing:6px;margin-bottom:10px}
+.spec-tip{color:#768079;font-size:14px;letter-spacing:2px;margin-top:20px}
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.ach-item{padding:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;position:relative}
+.ach-item.unlocked{border-color:#00ff7f;background:rgba(0,255,127,.05)}
+.ach-item .ach-icon{font-size:30px;color:#ff4655}
+.ach-item.unlocked .ach-icon{color:#00ff7f}
+.ach-item .ach-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px}
+.ach-item .ach-desc{font-size:10px;color:#768079}
+.ach-item .ach-lock{position:absolute;top:6px;right:6px;font-size:14px;color:#768079}
+/* REPLAY */
+.replay-controls{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center;background:rgba(10,14,19,.95);padding:12px 20px;border:1px solid #ff4655;z-index:35}
+.replay-controls button{padding:6px 14px;background:rgba(255,255,255,.05);font-size:12px;letter-spacing:1px}
+.replay-controls button.active{background:#ff4655;color:#fff}
+.replay-time{font-family:'Share Tech Mono',monospace;color:#ff4655;font-size:14px}
+/* KILL BANNER */
+.kill-banner{position:fixed;top:35%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:60px;letter-spacing:8px;color:#ff4655;text-shadow:0 0 30px rgba(255,70,85,.8);opacity:0;pointer-events:none;z-index:25;white-space:nowrap}
+.kill-banner.show{animation:announce 1.8s forwards}
+/* PAUSE */
+#pauseMenu{position:fixed;inset:0;z-index:35;background:rgba(10,14,19,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+#pauseMenu.show{display:flex}
+#pauseMenu h2{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:6px;color:#ff4655;margin-bottom:20px}
+.pm-btn{padding:14px 50px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:16px;letter-spacing:3px;min-width:280px;transition:all .2s;cursor:pointer;color:#e8eef5}
+.pm-btn:hover{background:rgba(255,70,85,.15);border-color:#ff4655}
+/* TOAST */
+#toast{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);padding:14px 28px;background:rgba(10,14,19,.95);border:1px solid #ff4655;color:#ff4655;font-size:14px;letter-spacing:2px;z-index:200;display:none;font-weight:600;max-width:80%;text-align:center}
+#toast.show{display:block;animation:toastIn .3s}
+/* VFX */
+.blade-storm{position:fixed;inset:0;pointer-events:none;z-index:15;border:0 solid #00e1ff;transition:border .2s}
+.blade-storm.active{border:8px solid #00e1ff;box-shadow:inset 0 0 80px rgba(0,225,255,.4)}
+.phoenix-flash{position:fixed;inset:0;background:#fff;z-index:25;opacity:0;pointer-events:none}
+.phoenix-flash.show{animation:flashbang .8s forwards}
+.ability-cursor{position:fixed;width:40px;height:40px;border:2px dashed #ff4655;transform:translate(-50%,-50%);pointer-events:none;z-index:21;display:none;animation:cursorRot 4s linear infinite}
+.ability-cursor.show{display:block}
+@keyframes cursorRot{to{transform:translate(-50%,-50%) rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     BOOT SCREEN
+     ============================================================ -->
+<div id="bootScreen" class="screen active">
+  <div class="boot-logo">PROTOCOL</div>
+  <div class="boot-sub">1v1 TACTICAL SHOOTER</div>
+  <div class="boot-bar"></div>
+</div>
+
+<!-- ============================================================
+     MAIN MENU
+     ============================================================ -->
+<div id="mainMenu" class="screen">
+  <div class="mm-top">
+    <div class="mm-logo">PROTOCOL</div>
+    <div class="mm-version">v3.0.0 // BUILD 2025.3</div>
+  </div>
+  <div class="mm-center">
+    <div class="mm-hero">
+      <h1>DEFEAT<br>YOUR<br><span>ENEMY</span></h1>
+      <div class="accent-line"></div>
+      <p>A 1v1 tactical shooter. Master your agent's abilities, control the map, plant the spike, and out-aim your opponent round by round.</p>
+    </div>
+    <div class="mm-menu">
+      <button class="mm-btn primary" id="playOnlineBtn">PLAY ONLINE ▸</button>
+      <button class="mm-btn" id="playBotBtn">PRACTICE VS BOT</button>
+      <button class="mm-btn" id="settingsBtn">SETTINGS</button>
+      <button class="mm-btn" id="achievementsBtn">ACHIEVEMENTS</button>
+      <button class="mm-btn" id="quitBtn">QUIT</button>
+    </div>
+  </div>
+  <div class="mm-bottom">
+    <div>© 2025 PROTOCOL — FAN PROJECT</div>
+    <div class="news">
+      <span>PATCH 3.0 LIVE</span>
+      <span>10 AGENTS</span>
+      <span>8 MAPS</span>
+      <span>REPLAY SYSTEM</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ONLINE SCREEN
+     ============================================================ -->
+<div id="onlineScreen" class="screen">
+  <button class="os-back" id="osBack">◂ BACK</button>
+  <div class="os-title">PLAY <span>ONLINE</span></div>
+  <div class="os-options">
+    <div class="os-card" id="osHost">
+      <div class="icon">⚡</div>
+      <h2>HOST LOBBY</h2>
+      <p>Create a private match. Share the code with a friend. First to your chosen number wins.</p>
+    </div>
+    <div class="os-card" id="osJoin">
+      <div class="icon">⌖</div>
+      <h2>JOIN LOBBY</h2>
+      <p>Enter a lobby code to join a friend's match.</p>
+    </div>
+  </div>
+  <div class="os-join-panel" id="osJoinPanel">
+    <input id="osJoinCode" placeholder="ENTER LOBBY CODE" maxlength="20">
+    <button id="osJoinGo">CONNECT ▸</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     AGENT SELECT
+     ============================================================ -->
+<div id="agentSelect" class="screen">
+  <div class="as-header">
+    <div class="as-title">SELECT <span>AGENT</span></div>
+    <div class="as-tip">USE 1-0 / Q W E R T Y TO QUICK PICK</div>
+  </div>
+  <div class="as-body">
+    <div class="as-side" id="agentList"></div>
+    <div class="as-portrait" id="agentPortrait">
+      <canvas id="portraitCanvas"></canvas>
+      <div class="pname" id="pName">JETT</div>
+      <div class="prole" id="pRole">DUELIST // SOUTH KOREA</div>
+      <div class="pdivider"></div>
+      <div class="pbio" id="pBio"></div>
+      <div class="pabilities" id="pAbilities"></div>
+    </div>
+  </div>
+  <div class="as-bottom">
+    <div class="as-tip">CHOOSE YOUR AGENT. YOUR ABILITIES SHAPE THE ROUND.</div>
+    <button class="lockbtn" id="lockBtn">LOCK IN ▸</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     LOBBY
+     ============================================================ -->
+<div id="lobbyScreen" class="screen">
+  <div class="lb-header">
+    <div class="lb-title">CUSTOM <span>LOBBY</span></div>
+    <div class="lb-id" id="lobbyId" title="Click to copy">LOBBY-ID: --</div>
+    <div class="as-tip" id="lobbyMode">MODE: 1V1</div>
+  </div>
+  <div class="lb-body">
+    <div class="lb-players">
+      <div class="lb-player you" id="lbSlot1">
+        <div class="lb-avatar">★</div>
+        <div>
+          <div class="lb-pname" id="lbName1">YOU</div>
+          <div class="lb-prole" id="lbAgent1">JETT</div>
+        </div>
+        <div class="lb-pbadge" id="lbBadge1">HOST</div>
+      </div>
+      <div class="lb-player" id="lbSlot2">
+        <div class="lb-avatar" id="lbAv2">?</div>
+        <div>
+          <div class="lb-pname" id="lbName2">WAITING...</div>
+          <div class="lb-prole" id="lbAgent2">—</div>
+        </div>
+        <div class="lb-pbadge" id="lbBadge2">EMPTY</div>
+      </div>
+    </div>
+    <div class="lb-side">
+      <div class="lb-panel">
+        <h3>PLAYER NAME</h3>
+        <input class="lb-input" id="nameInput" maxlength="14" placeholder="ENTER NAME" value="PLAYER1">
+      </div>
+      <div class="lb-panel">
+        <h3>MAP</h3>
+        <select class="lb-select" id="mapSelect">
+          <option value="ascent">ASCENT-1V1</option>
+          <option value="haven">HAVEN-1V1</option>
+          <option value="bind">BIND-1V1</option>
+          <option value="split">SPLIT-1V1</option>
+          <option value="lotus">LOTUS-1V1</option>
+          <option value="icebox">ICEBOX-1V1</option>
+          <option value="pearl">PEARL-1V1</option>
+          <option value="custom">CUSTOM-ARENA</option>
+        </select>
+      </div>
+      <div class="lb-panel">
+        <h3>FIRST TO</h3>
+        <select class="lb-select" id="ftSelect">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+      <div class="lb-panel">
+        <h3>SPIKE MODE</h3>
+        <select class="lb-select" id="spikeSelect">
+          <option value="off">DISABLED</option>
+          <option value="on" selected>ENABLED</option>
+        </select>
+      </div>
+      <div class="lb-status" id="lbStatus">Setting up lobby...</div>
+    </div>
+    <div class="lb-chat">
+      <h3>LOBBY CHAT</h3>
+      <div class="chat-log" id="chatLog"></div>
+      <div class="chat-input">
+        <input id="chatInput" placeholder="Say something..." maxlength="80">
+        <button id="chatSend">SEND</button>
+      </div>
+    </div>
+  </div>
+  <div class="lb-bottom">
+    <button class="lb-back" id="lbBack">◂ BACK</button>
+    <div class="lb-info" id="lbInfo">Both players must be ready. Host can force start.</div>
+    <button class="lb-start" id="lbStart" disabled>START MATCH ▸</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     HUD
+     ============================================================ -->
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-score">
+      <div class="team"><span class="t" id="hudTeamYou">YOU</span> <span id="scoreYou">0</span></div>
+      <div class="hud-timer" id="hudTimer">1:00</div>
+      <div class="team"><span id="scoreEnemy">0</span> <span class="t" id="hudTeamEnemy">ENEMY</span></div>
+    </div>
+    <div class="hud-round" id="hudRound">ROUND 1</div>
+  </div>
+  <div class="hud-killfeed" id="killfeed"></div>
+  <div class="hud-minimap">
+    <div class="label">RADAR</div>
+    <canvas id="minimapCanvas" width="180" height="180"></canvas>
+  </div>
+  <div class="hud-bottom">
+    <div class="hud-center">
+      <div class="hud-weapon" id="hudWeapon">CLASSIC</div>
+      <div class="hud-ammo"><span id="hudAmmo">12</span><span class="reserve">/ <span id="hudReserve">36</span></span></div>
+      <div class="hud-hp"><div class="hud-hp-armor" id="hpArmor" style="width:0%"></div><div class="hud-hp-fill" id="hpFill" style="width:100%"></div><div class="hud-hp-text" id="hpText">100 / 100</div></div>
+    </div>
+  </div>
+  <div class="hud-abilities" id="hudAbilities"></div>
+  <div class="hud-cross" id="hudCross"></div>
+  <div class="hud-hitmarker" id="hitmarker"></div>
+  <div class="hud-damage" id="damageVignette"></div>
+  <div class="hud-announce" id="announce"></div>
+  <div class="hud-buymenu" id="buyMenu">
+    <button class="buy-close" id="buyClose">CLOSE [B]</button>
+    <div class="buy-credits" id="buyCredits">$ 800</div>
+    <div class="buy-title">BUY PHASE — <span id="buyTimer">30</span>s</div>
+    <div class="buy-cats" id="buyCats"></div>
+    <div class="buy-items" id="buyItems"></div>
+  </div>
+  <div class="hud-spike" id="spikeHud">
+    <div>SPIKE PLANTED</div>
+    <div class="stimer" id="spikeTimer">45</div>
+  </div>
+  <div class="hud-spike-icon" id="spikeIcon"></div>
+  <button class="hud-defuse" id="defuseBtn">DEFUSE [E]</button>
+</div>
+
+<!-- ============================================================
+     VFX OVERLAYS
+     ============================================================ -->
+<div class="blade-storm" id="bladeStormOverlay"></div>
+<div class="phoenix-flash" id="phoenixFlash"></div>
+<div class="ability-cursor" id="abilityCursor"></div>
+<div class="kill-banner" id="killBanner"></div>
+
+<!-- ============================================================
+     KILL SCREEN
+     ============================================================ -->
+<div id="killScreen">
+  <div class="ks-killer" id="ksKiller">KILLED BY</div>
+  <div class="ks-you">YOU HAVE BEEN ELIMINATED</div>
+  <div class="ks-weapon" id="ksWeapon">— WITH VANDAL</div>
+  <div class="ks-tip">RESPAWNING IN 3 SECONDS</div>
+</div>
+
+<!-- ============================================================
+     ROUND SCREEN
+     ============================================================ -->
+<div id="roundScreen">
+  <div class="rs-title" id="rsTitle">VICTORY</div>
+  <div class="rs-score" id="rsScore">1 - 0</div>
+  <div class="rs-tip" id="rsTip">NEXT ROUND STARTING...</div>
+</div>
+
+<!-- ============================================================
+     STATS SCREEN
+     ============================================================ -->
+<div id="statsScreen">
+  <div class="stats-panel">
+    <h2>MATCH <span style="color:#fff">STATS</span></h2>
+    <div id="statsBody"></div>
+    <div class="stat-graph" id="statGraph"></div>
+    <button class="set-close" id="statsClose">CONTINUE</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SETTINGS SCREEN
+     ============================================================ -->
+<div id="settingsScreen">
+  <div class="settings-panel">
+    <h2>SETTINGS</h2>
+    <div class="set-section">
+      <h3>GAMEPLAY</h3>
+      <div class="set-row"><label>MOUSE SENSITIVITY</label><input type="range" id="setSens" min="0.0005" max="0.005" step="0.0001" value="0.0022"><span class="val" id="setSensVal">0.0022</span></div>
+      <div class="set-row"><label>FIELD OF VIEW</label><input type="range" id="setFov" min="60" max="120" step="1" value="75"><span class="val" id="setFovVal">75</span></div>
+      <div class="set-row"><label>MASTER VOLUME</label><input type="range" id="setVol" min="0" max="1" step="0.05" value="0.7"><span class="val" id="setVolVal">70%</span></div>
+      <div class="set-row"><label>FOV ON SCOPE</label><input type="range" id="setAdsFov" min="30" max="60" step="1" value="40"><span class="val" id="setAdsFovVal">40</span></div>
+    </div>
+    <div class="set-section">
+      <h3>CROSSHAIR</h3>
+      <div class="ch-editor">
+        <div class="ch-preview" id="chPreview"><svg id="chSvg" width="120" height="120" viewBox="0 0 24 24"></svg></div>
+        <div class="ch-controls">
+          <div class="set-row"><label>COLOR</label><input type="color" id="setChColor" value="#00ff7f"></div>
+          <div class="set-row"><label>OUTLINE</label><input type="checkbox" id="setChOutline" checked></div>
+          <div class="set-row"><label>CENTER DOT</label><input type="checkbox" id="setChDot"></div>
+          <div class="set-row"><label>INNER LINES</label><input type="range" id="setChInner" min="0" max="12" step="1" value="6"></div>
+          <div class="set-row"><label>THICKNESS</label><input type="range" id="setChThick" min="1" max="3" step="0.5" value="1.5"></div>
+          <div class="set-row"><label>MOVEMENT ERROR</label><input type="checkbox" id="setChMove" checked></div>
+        </div>
+      </div>
+    </div>
+    <div class="set-section">
+      <h3>KEYBINDS</h3>
+      <div class="set-row"><label>WALK</label><span class="val" id="keyWalk">CAPS LOCK</span></div>
+      <div class="set-row"><label>SCOREBOARD</label><span class="val" id="keyScore">TAB</span></div>
+    </div>
+    <button class="set-close" id="settingsClose">SAVE & CLOSE</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SPECTATE SCREEN
+     ============================================================ -->
+<div id="spectateScreen">
+  <div class="spec-info">SPECTATING</div>
+  <div class="spec-name" id="specName">ENEMY</div>
+  <div class="spec-tip">WAITING FOR NEXT ROUND...</div>
+</div>
+
+<!-- ============================================================
+     ACHIEVEMENTS
+     ============================================================ -->
+<div id="achievementsScreen">
+  <div class="settings-panel">
+    <h2>ACHIEVEMENTS <span style="color:#fff">(<span id="achUnlocked">0</span>/<span id="achTotal">20</span>)</span></h2>
+    <div class="ach-grid" id="achGrid"></div>
+    <button class="set-close" id="achievementsClose">CLOSE</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     REPLAY CONTROLS (hidden by default)
+     ============================================================ -->
+<div class="replay-controls hidden" id="replayControls">
+  <button id="replayPlay">PLAY</button>
+  <button id="replayStop">EXIT</button>
+  <div class="replay-time" id="replayTime">0:00 / 0:30</div>
+  <input type="range" id="replayScrub" min="0" max="100" value="0" style="width:200px">
+</div>
+
+<!-- ============================================================
+     PAUSE MENU
+     ============================================================ -->
+<div id="pauseMenu">
+  <h2>PAUSED</h2>
+  <button class="pm-btn" id="pmResume">RESUME</button>
+  <button class="pm-btn" id="pmSettings">SETTINGS</button>
+  <button class="pm-btn" id="pmStats">MATCH STATS</button>
+  <button class="pm-btn" id="pmAchievements">ACHIEVEMENTS</button>
+  <button class="pm-btn" id="pmQuit">LEAVE MATCH</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============================================================
+     EXTERNAL LIBRARIES
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<!-- ============================================================
+     GAME SCRIPTS (4 FILES)
+     ============================================================ -->
+<script src="game-data.js"></script>
+
+<script src="game-engine.js"></script>
+
+<script src="game-ui.js"></script>
+
+<script src="game-init.js"></script>
+
+</body>
+</html>
